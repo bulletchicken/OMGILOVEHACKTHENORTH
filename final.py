@@ -52,6 +52,8 @@ import time
 # ---------------------------------------------------------------------------- #
 
 import assemblyai as aai
+import os; import appscript; import time
+import pyautogui
 aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
 
 
@@ -168,9 +170,19 @@ def on_data(transcript: aai.RealtimeTranscript):
             mixer.music.play()
             ser.write("dance".encode())
 
+        elif(transcript.text.lower().find("call up")!=-1):
+            os.popen('open facetime://' + "6729993167")
+            appscript.app('FaceTime').activate() 
+            time.sleep(1)
+            pyautogui.click(90,750)
+        if(transcript.text.lower().find("end the call")!=-1):
+            pyautogui.click(250,750)
+
 
     else:
         print(transcript.text, end="\r")
+
+        
 
 
 def playAudio():
