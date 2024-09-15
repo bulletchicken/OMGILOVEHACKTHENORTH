@@ -1,3 +1,9 @@
+from serial import Serial
+import os
+
+import subprocess
+ser = Serial('/dev/cu.usbserial-1110', 9600)
+
 import assemblyai as aai
 
 aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
@@ -13,6 +19,11 @@ def on_data(transcript: aai.RealtimeTranscript):
 
     if isinstance(transcript, aai.RealtimeFinalTranscript):
         print(transcript.text, end="\r\n")
+        if(transcript.text.lower().find("go forward")!=-1):
+            ser.write("m90".encode())
+        elif(transcript.text.lower().find("stop")!=-1):
+            ser.write("m0".encode())
+
     else:
         print(transcript.text, end="\r")
 

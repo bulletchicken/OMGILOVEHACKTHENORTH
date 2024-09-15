@@ -1,22 +1,158 @@
+# ---------------------------------------------------------------------------- #
+#                                    Arduino                                   #
+# ---------------------------------------------------------------------------- #
+
+from serial import Serial
+import os
+ser = Serial('/dev/cu.usbserial-1110', 9600)
+
+# ---------------------------------------------------------------------------- #
+#                                play and claude                               #
+# ---------------------------------------------------------------------------- #
+
 import os
 import subprocess
 from pyht import Client, TTSOptions, Format
 import anthropic
 
-def run():
+# ---------------------------------------------------------------------------- #
+#                                   Selenium                                   #
+# ---------------------------------------------------------------------------- #
+
+import os
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+
+# ---------------------------------------------------------------------------- #
+#                                 assembly tts                                 #
+# ---------------------------------------------------------------------------- #
+
+import assemblyai as aai
+aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
+
+
+# ---------------------------------------------------------------------------- #
+#                          the main function basically                         #
+# ---------------------------------------------------------------------------- #
+
+# ---------------------------------------------------------------------------- #
+#                                    playAI                                    #
+# ---------------------------------------------------------------------------- #
+
+def turnOnPlay():
+    clickable = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "button, a, [role='button']"))
+    )
+    clickable.click()
+    print("Clicked on a clickable element within the iframe")
+
+# Setup Chrome options
+chrome_options = webdriver.ChromeOptions()
+
+#keeps the tab open
+chrome_options.add_experimental_option("detach", True)
+
+# chrome_options.add_argument("--headless")  # Uncomment this if you want to run headless
+
+# Setup the Chrome driver
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+# Get the absolute path to your HTML file
+html_path = os.path.abspath("test.html")
+
+# Navigate to the page using the file:// protocol
+driver.get(f"file://{html_path}")
+
+
+iframe = WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.ID, "play-ai-embed"))
+)
+
+print(f"Iframe found: ID = {iframe.get_attribute('id')}, Src = {iframe.get_attribute('src')}")
+
+# Switch to the iframe
+driver.switch_to.frame(iframe)
+
+# Wait for the iframe content to load (adjust timeout as needed)
+time.sleep(5)
+    
+try:
+    # Try to find a clickable element within the iframe
+    turnOnPlay()
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    # Take a screenshot for debugging
+    driver.save_screenshot("error_screenshot.png")
+    print("Screenshot saved as error_screenshot.png")
+
+
+
+
+def on_open(session_opened: aai.RealtimeSessionOpened):
+    print("Session ID:", session_opened.session_id)
+
+def on_data(transcript: aai.RealtimeTranscript):
+    #starup
+
+
+
+    # ---------------------------------------------------------------------------- #
+    #                                      stt                                     #
+    # ---------------------------------------------------------------------------- #
+        
+    if not transcript.text:
+        return
+
+    if isinstance(transcript, aai.RealtimeFinalTranscript):
+        print(transcript.text, end="\r\n")
+        print(transcript.text)
+        if(transcript.text.lower().find("check out")!=-1):
+            #send to manual claude and disable play.ai
+            driver.refresh()
+            claude(transcript.text)
+            
+            #start back up ted
+            turnOnPlay()
+            
+
+    else:
+        print(transcript.text, end="\r")
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+def claude(message):
     client = anthropic.Anthropic(api_key="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")
     message = client.messages.create(
         model="claude-3-5-sonnet-20240620",
         max_tokens=50,
         temperature=0.8,
-        system="You are a world-class poet. Respond only with short poems.",
+        system="You are an assistive healthcare and funny and chatty teddy bear. ",
         messages=[
             {
                 "role": "user",
                 "content": [
                     {
                         "type": "text",
-                        "text": "Why is the ocean salty?"
+                        "text": message
                     }
                 ]
             }
@@ -53,4 +189,36 @@ def TTS(response):
     # Play the audio using afplay
     subprocess.run(["afplay", output_file])
 
-run()
+#sdfsdf
+
+# ---------------------------------------------------------------------------- #
+#                                   assembly                                   #
+# ---------------------------------------------------------------------------- #
+
+
+def on_error(error: aai.RealtimeError):
+    print("An error occured:", error)
+
+
+def on_close():
+    print("Closing Session")
+
+
+transcriber = aai.RealtimeTranscriber(
+    sample_rate=16_000,
+    on_data=on_data,
+    on_error=on_error,
+    on_open=on_open,
+    on_close=on_close,
+    end_utterance_silence_threshold=0
+    #to change the threshhold midway (maybe after the keyword is said? jk that would be no improvement) -> transcriber.configure_end_utterance_silence_threshold(300)
+)
+
+transcriber.connect()
+
+
+microphone_stream = aai.extras.MicrophoneStream(sample_rate=16_000)
+transcriber.stream(microphone_stream)
+
+transcriber.close()
+
