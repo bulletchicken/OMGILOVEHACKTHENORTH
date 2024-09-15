@@ -50,7 +50,7 @@ import time
 # ---------------------------------------------------------------------------- #
 
 import assemblyai as aai
-aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
+aai.settings.api_key = ""
 
 
 # ---------------------------------------------------------------------------- #
@@ -192,7 +192,7 @@ def claude(message):
     
     base64_image = encode_image(image_name)
 
-    client = anthropic.Anthropic(api_key="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")
+    client = anthropic.Anthropic(api_key="")
     
     response = client.messages.create(
         model="claude-3-5-sonnet-20240620",
@@ -223,7 +223,7 @@ def claude(message):
     return response.content[0].text
 
 # Initialize PlayHT API with your credentials
-playht_client = Client("Y7YFtCv3NPZXQptFTNcQQSLYIBF3", "8e09ec1f89d9441b8cc84e9a99a73ae0")
+playht_client = Client("")
 
 def TTS(response):
     # Configure your stream
