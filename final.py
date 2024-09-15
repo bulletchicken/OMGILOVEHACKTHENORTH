@@ -1,10 +1,22 @@
 # ---------------------------------------------------------------------------- #
+#                                   CV                                         #
+# ---------------------------------------------------------------------------- #
+
+import cv2
+from ultralytics import YOLO
+from serial import Serial
+import os
+import math
+import time
+
+
+# ---------------------------------------------------------------------------- #
 #                                    Arduino                                   #
 # ---------------------------------------------------------------------------- #
 
 from serial import Serial
 import os
-ser = Serial('/dev/cu.usbserial-1110', 9600)
+ser = Serial('/dev/cu.usbserial-11340', 9600)
 
 # ---------------------------------------------------------------------------- #
 #                                play and claude                               #
@@ -14,6 +26,8 @@ import os
 import subprocess
 from pyht import Client, TTSOptions, Format
 import anthropic
+import base64
+import httpx
 
 # ---------------------------------------------------------------------------- #
 #                                   Selenium                                   #
@@ -38,7 +52,7 @@ aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
 
 
 # ---------------------------------------------------------------------------- #
-#                          the main function basically                         #
+#                          the start up                                        #
 # ---------------------------------------------------------------------------- #
 
 # ---------------------------------------------------------------------------- #
@@ -83,6 +97,7 @@ driver.switch_to.frame(iframe)
 time.sleep(5)
     
 try:
+    #startup
     # Try to find a clickable element within the iframe
     turnOnPlay()
 
@@ -94,13 +109,15 @@ except Exception as e:
 
 
 
+# ---------------------------------------------------------------------------- #
+#                                      stt                                     #
+# ---------------------------------------------------------------------------- #
 
 def on_open(session_opened: aai.RealtimeSessionOpened):
     print("Session ID:", session_opened.session_id)
 
 def on_data(transcript: aai.RealtimeTranscript):
     #starup
-
 
 
     # ---------------------------------------------------------------------------- #
@@ -117,39 +134,71 @@ def on_data(transcript: aai.RealtimeTranscript):
             #send to manual claude and disable play.ai
             driver.refresh()
             claude(transcript.text)
-            
-            #start back up ted
-            turnOnPlay()
-            
+
+        elif(transcript.text.lower().find("help me")!=-1):
+            driver.refresh()
+            process = subprocess.Popen(['python3', 'emergency.py'])
+
+        elif(transcript.text.lower().find("ted")!=-1):
+            print(ser.readline())
+            ser.write("leftRight".encode())
+
+        elif(transcript.text.lower().find("feel too")!=-1):
+            ser.write("readPulse".encode())
+
+        elif(transcript.text.lower().find("feel too")!=-1):
+            ser.write("readPulse".encode())
+        elif(transcript.text.lower().find("wave")!=-1):
+            ser.write("wave".encode())
+
 
     else:
         print(transcript.text, end="\r")
 
 
+
+
+
+
+
+
+
+def capture_and_process_image():
+    cam = cv2.VideoCapture(0)
+    ret, img = cam.read()
+    cam.release()
     
+    if not ret:
+        return None
+    
+    img_name = "scan.png"
+    cv2.imwrite(img_name, img)
+    return img_name
 
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
 
-
-
-
-
-
-
-
-
-
-
-def claude(message):
+def claude(image_base64, message):
     client = anthropic.Anthropic(api_key="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")
-    message = client.messages.create(
+    
+    response = client.messages.create(
         model="claude-3-5-sonnet-20240620",
         max_tokens=50,
         temperature=0.8,
-        system="You are an assistive healthcare and funny and chatty teddy bear. ",
+        system="You are an assistive healthcare and funny and chatty teddy bear.",
         messages=[
             {
                 "role": "user",
                 "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": image_base64,
+                        },
+                    },
                     {
                         "type": "text",
                         "text": message
@@ -158,8 +207,8 @@ def claude(message):
             }
         ]
     )
-    response = message.content[0].text  # Extract the text from the response
-    TTS(response)
+    
+    return response.content[0].text
 
 # Initialize PlayHT API with your credentials
 playht_client = Client("Y7YFtCv3NPZXQptFTNcQQSLYIBF3", "8e09ec1f89d9441b8cc84e9a99a73ae0")
