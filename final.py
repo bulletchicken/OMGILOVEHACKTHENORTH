@@ -18,6 +18,8 @@ from serial import Serial
 import os
 ser = Serial('/dev/cu.usbserial-11340', 9600)
 from pygame import mixer
+import pygame
+mixer.init()
 
 
 # ---------------------------------------------------------------------------- #
@@ -146,10 +148,13 @@ def on_data(transcript: aai.RealtimeTranscript):
 
         elif(transcript.text.lower().find("feel too")!=-1):
             driver.refresh()
-
-            print("hit")
             ser.write("readPulse".encode())
+            mixer.music.load('handhold.mp3')
+            mixer.music.play()
+
+            pygame.time.delay(7000)
             print("past")
+            playAudio()
 
 
 
@@ -158,7 +163,7 @@ def on_data(transcript: aai.RealtimeTranscript):
             ser.write("leftRight".encode())
 
         elif(transcript.text.lower().find("your moves")!=-1):
-            mixer.init()
+
             mixer.music.load('billie.mp3')
             mixer.music.play()
             ser.write("dance".encode())
@@ -168,6 +173,9 @@ def on_data(transcript: aai.RealtimeTranscript):
         print(transcript.text, end="\r")
 
 
+def playAudio():
+    mixer.music.load('bpmtest.mp3')
+    mixer.music.play()
 
 
 
