@@ -17,7 +17,7 @@ def lockIn():
     #Load audio file
     mixer.music.load('siren.mp3')
     mixer.music.play()
-    ser = Serial('/dev/cu.usbserial-1120', 9600)
+    ser = Serial('/dev/cu.usbserial-1140', 4800)
 
     # Load the YOLOv8 model
     model = YOLO('yolov8n.pt')  # 'n' for nano, you can change to 's', 'm', 'l', or 'x' for other model sizes

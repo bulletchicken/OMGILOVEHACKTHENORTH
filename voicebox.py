@@ -14,12 +14,12 @@ def TTS():
     )
     
     # Text to be converted to speech
-    text = "Hey! my name is ted. your best friend and personal paramedic!"
+    text = ""
 
     
     
     # Output file name
-    output_file = "introline.mp3"
+    output_file = "bpmtest.mp3"
     
     # Generate and save the audio
     with open(output_file, "wb") as f:

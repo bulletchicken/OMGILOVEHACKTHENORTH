@@ -17,6 +17,8 @@ import time
 from serial import Serial
 import os
 ser = Serial('/dev/cu.usbserial-11340', 9600)
+from pygame import mixer
+
 
 # ---------------------------------------------------------------------------- #
 #                                play and claude                               #
@@ -54,7 +56,7 @@ aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
 # ---------------------------------------------------------------------------- #
 #                          the start up                                        #
 # ---------------------------------------------------------------------------- #
-
+cam = cv2.VideoCapture(0)
 # ---------------------------------------------------------------------------- #
 #                                    playAI                                    #
 # ---------------------------------------------------------------------------- #
@@ -94,7 +96,7 @@ print(f"Iframe found: ID = {iframe.get_attribute('id')}, Src = {iframe.get_attri
 driver.switch_to.frame(iframe)
 
 # Wait for the iframe content to load (adjust timeout as needed)
-time.sleep(5)
+time.sleep(4)
     
 try:
     #startup
@@ -119,7 +121,6 @@ def on_open(session_opened: aai.RealtimeSessionOpened):
 def on_data(transcript: aai.RealtimeTranscript):
     #starup
 
-
     # ---------------------------------------------------------------------------- #
     #                                      stt                                     #
     # ---------------------------------------------------------------------------- #
@@ -130,7 +131,10 @@ def on_data(transcript: aai.RealtimeTranscript):
     if isinstance(transcript, aai.RealtimeFinalTranscript):
         print(transcript.text, end="\r\n")
         print(transcript.text)
-        if(transcript.text.lower().find("check out")!=-1):
+
+        if(transcript.text.lower().find("hi")!=-1):
+            ser.write("wave".encode())
+        elif(transcript.text.lower().find("check out")!=-1):
             #send to manual claude and disable play.ai
             driver.refresh()
             claude(transcript.text)
@@ -139,17 +143,25 @@ def on_data(transcript: aai.RealtimeTranscript):
             driver.refresh()
             process = subprocess.Popen(['python3', 'emergency.py'])
 
+
+        elif(transcript.text.lower().find("feel too")!=-1):
+            driver.refresh()
+
+            print("hit")
+            ser.write("readPulse".encode())
+            print("past")
+
+
+
         elif(transcript.text.lower().find("ted")!=-1):
             print(ser.readline())
             ser.write("leftRight".encode())
 
-        elif(transcript.text.lower().find("feel too")!=-1):
-            ser.write("readPulse".encode())
-
-        elif(transcript.text.lower().find("feel too")!=-1):
-            ser.write("readPulse".encode())
-        elif(transcript.text.lower().find("wave")!=-1):
-            ser.write("wave".encode())
+        elif(transcript.text.lower().find("your moves")!=-1):
+            mixer.init()
+            mixer.music.load('billie.mp3')
+            mixer.music.play()
+            ser.write("dance".encode())
 
 
     else:
@@ -163,23 +175,23 @@ def on_data(transcript: aai.RealtimeTranscript):
 
 
 
-def capture_and_process_image():
-    cam = cv2.VideoCapture(0)
-    ret, img = cam.read()
-    cam.release()
-    
-    if not ret:
-        return None
-    
-    img_name = "scan.png"
-    cv2.imwrite(img_name, img)
-    return img_name
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
-def claude(image_base64, message):
+def claude(message):
+    global ret, img
+    ret, img = cam.read()
+
+    os.remove("picture.png") #reset
+    img_name = "picture.png".format(0)
+
+    cv2.imwrite(img_name, img)
+    image_name = "picture.png"
+    
+    base64_image = encode_image(image_name)
+
     client = anthropic.Anthropic(api_key="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")
     
     response = client.messages.create(
@@ -196,8 +208,8 @@ def claude(image_base64, message):
                         "source": {
                             "type": "base64",
                             "media_type": "image/png",
-                            "data": image_base64,
-                        },
+                            "data": base64_image
+                        }
                     },
                     {
                         "type": "text",
@@ -254,7 +266,7 @@ def on_close():
 
 
 transcriber = aai.RealtimeTranscriber(
-    sample_rate=16_000,
+    sample_rate=8_000,
     on_data=on_data,
     on_error=on_error,
     on_open=on_open,
@@ -266,8 +278,6 @@ transcriber = aai.RealtimeTranscriber(
 transcriber.connect()
 
 
-microphone_stream = aai.extras.MicrophoneStream(sample_rate=16_000)
+microphone_stream = aai.extras.MicrophoneStream(sample_rate=8_000)
 transcriber.stream(microphone_stream)
-
-transcriber.close()
 

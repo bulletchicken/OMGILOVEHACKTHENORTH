@@ -1,9 +1,3 @@
-from serial import Serial
-import os
-
-import subprocess
-ser = Serial('/dev/cu.usbserial-1110', 9600)
-
 import assemblyai as aai
 
 aai.settings.api_key = "0b4ddfbf65af49a885ff85ea61576f52"
@@ -19,11 +13,6 @@ def on_data(transcript: aai.RealtimeTranscript):
 
     if isinstance(transcript, aai.RealtimeFinalTranscript):
         print(transcript.text, end="\r\n")
-        if(transcript.text.lower().find("go forward")!=-1):
-            ser.write("m90".encode())
-        elif(transcript.text.lower().find("stop")!=-1):
-            ser.write("m0".encode())
-
     else:
         print(transcript.text, end="\r")
 
@@ -42,8 +31,6 @@ transcriber = aai.RealtimeTranscriber(
     on_error=on_error,
     on_open=on_open,
     on_close=on_close,
-    end_utterance_silence_threshold=0
-    #to change the threshhold midway (maybe after the keyword is said? jk that would be no improvement) -> transcriber.configure_end_utterance_silence_threshold(300)
 )
 
 transcriber.connect()
