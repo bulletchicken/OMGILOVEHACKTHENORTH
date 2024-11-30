@@ -1,4 +1,4 @@
-# Ted: The Friendly Companion Robot
+# Ted 🧸: Your Personal Healthcare Companion!
 
 ## Inspiration
 
