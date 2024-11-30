@@ -15,7 +15,7 @@ def lockIn():
     mixer.init()
 
     #Load audio file
-    mixer.music.load('siren.mp3')
+    mixer.music.load('public_audio/siren.mp3')
     mixer.music.play()
     ser = Serial('/dev/cu.usbserial-1140', 4800)
 

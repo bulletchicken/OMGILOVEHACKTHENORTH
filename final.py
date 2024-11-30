@@ -100,7 +100,7 @@ print(f"Iframe found: ID = {iframe.get_attribute('id')}, Src = {iframe.get_attri
 driver.switch_to.frame(iframe)
 
 # Wait for the iframe content to load (adjust timeout as needed)
-time.sleep(4)
+time.sleep(3)
     
 try:
     #startup
@@ -151,7 +151,7 @@ def on_data(transcript: aai.RealtimeTranscript):
         elif(transcript.text.lower().find("feel too")!=-1):
             driver.refresh()
             ser.write("readPulse".encode())
-            mixer.music.load('handhold.mp3')
+            mixer.music.load('public_audio/handhold.mp3')
             mixer.music.play()
 
             pygame.time.delay(7000)
@@ -164,9 +164,15 @@ def on_data(transcript: aai.RealtimeTranscript):
             print(ser.readline())
             ser.write("leftRight".encode())
 
-        elif(transcript.text.lower().find("your moves")!=-1):
+        elif(transcript.text.lower().find("michael jackson")!=-1):
 
-            mixer.music.load('billie.mp3')
+            mixer.music.load('public_audio/billie.mp3')
+            mixer.music.play()
+            ser.write("dance".encode())
+        
+        elif(transcript.text.lower().find("your move")!=-1):
+
+            mixer.music.load('public_audio/billie.mp3')
             mixer.music.play()
             ser.write("dance".encode())
 
@@ -175,8 +181,8 @@ def on_data(transcript: aai.RealtimeTranscript):
             appscript.app('FaceTime').activate() 
             time.sleep(1)
             pyautogui.click(90,750)
-        if(transcript.text.lower().find("end the call")!=-1):
-            pyautogui.click(250,750)
+        elif(transcript.text.lower().find("end the call")!=-1):
+            pyautogui.click(90,750)
 
 
     else:
@@ -186,7 +192,7 @@ def on_data(transcript: aai.RealtimeTranscript):
 
 
 def playAudio():
-    mixer.music.load('bpmtest.mp3')
+    mixer.music.load('public_audio/bpmtest.mp3')
     mixer.music.play()
 
 
@@ -243,7 +249,7 @@ def claude(message):
     return response.content[0].text
 
 # Initialize PlayHT API with your credentials
-playht_client = Client("")
+playht_client = Client('Y7YFtCv3NPZXQptFTNcQQSLYIBF3', "8e09ec1f89d9441b8cc84e9a99a73ae0")
 
 def TTS(response):
     # Configure your stream
@@ -258,7 +264,7 @@ def TTS(response):
     text = response
     
     # Output file name
-    output_file = "output.mp3"
+    output_file = "public_audio/output.mp3"
     
     # Generate and save the audio
     with open(output_file, "wb") as f:
