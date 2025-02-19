@@ -1,5 +1,8 @@
 # Ted 🧸: Your Personal Healthcare Companion!
 
+## 🎥 Demo Video
+[![Watch the Video](https://img.youtube.com/vi/I5dP9mbnx4M/maxresdefault.jpg)](https://www.youtube.com/watch?v=I5dP9mbnx4M&t=5484s)
+
 ## Inspiration
 
 Our biggest inspiration came from our grandparents, who often felt lonely and struggled to find help. Specifically, one of us has a grandpa with dementia. He lives alone and finds it hard to receive help since most of his relatives live far away, and he has reduced motor skills. Knowing this, we were determined to create a product — and a friend — that would be able to help the elderly with their health while also being fun to be around! Ted makes this dream a reality, transforming lives and promoting better welfare.
